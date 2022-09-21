@@ -1,0 +1,743 @@
+﻿Expt 1. Program to print client address at server side
+Algorithm:
+SERVER
+STEP1: Create instances for socket and ServerSocket class.
+STEP2: Use the port 9000 for TCP.
+STEP3: Make the PrintStream object connect to the OuputStream using Socket.
+STEP4: Create an instance of the Date class and write it into the Socket.
+STEP5: Get the IP address of the client using the socket and getInetAddress ().
+STEP6: Print the client’s IP  ddress͘
+CLIENT
+STEP1: Create instances for socket class with the port number 9000.
+STEP2: Create an object of DataInputStream and make it to get data from server through the socket.
+STEP3: Read the Date object.
+STEP4: Print the obtained date.
+Program:
+Server:
+import java.net.*;
+import java.io.*;
+class server4
+{
+public static void main(String[] args) throws Exception
+{
+ServerSocket s1 = new ServerSocket(8000);
+System.out.println("Server Running");
+Socket s2=s1.accept();
+InetAddress a=InetAddress.getLocalHost();
+String add=a.getHostAddress();
+BufferedReader in=new BufferedReader(new InputStreamReader(s2.getInputStream()));
+
+PrintWriter out=new PrintWriter(s2.getOutputStream(),true);
+System.out.println("Client Connected");
+System.out.println(s2);
+out.println(add);
+System.out.println("Client's IP is ");
+System.out.println(in.readLine());
+s1.close();
+s2.close();
+}
+}
+Client:
+import java.net.*;
+import java.io.*;
+class client4
+{
+public static void main(String[] args) throws Exception
+{
+InetAddress a=InetAddress.getLocalHost();
+Socket s2 = new Socket(a,8000);
+String add=a.getHostAddress();
+BufferedReader in=new BufferedReader(new InputStreamReader(s2.getInputStream()));
+PrintWriter out=new PrintWriter(new OutputStreamWriter(s2.getOutputStream()),true);
+System.out.println(in.readLine());
+out.println(add);
+s2.close();
+}
+}
+_________________
+Expt 2. Creation of date and time server
+Algorithm:
+SERVER
+STEP1: Create instances for socket and ServerSocket class.
+STEP2: Use the port 8020 for TCP.
+STEP3: Make the PrintStream object connect to the OuputStream using Socket.
+STEP4: Create an instance of the Date class and write it into the Socket.
+STEP5: Get the IP address of the client using the socket and getInetAddress().
+CLIENT
+STEP1: Create instances for socket class with the port number 8020.
+STEP2: Create an object of DataInputStream and make it to get data from server through the socket.
+STEP3: Read the Date object.
+STEP4: Print the obtained date.
+Program:
+Server:
+import java.net.*;
+import java.io.*;
+import java.util.*;
+public class server2 extends Thread
+{
+public static void main(String[] args) throws Exception
+{
+ServerSocket sSocket = new ServerSocket(1000);
+Socket cSocket=sSocket.accept();
+BufferedReader br=new BufferedReader(new InputStreamReader(cSocket.getInputStream()));
+PrintWriter out=new PrintWriter(cSocket.getOutputStream(),true);
+Date d = new Date();
+
+try
+{
+while(true)
+{
+d= new Date();
+out.println("Time at server;" +d.toString());
+System.out.println(br.readLine()); sleep(1000);
+}
+}
+catch(IOException e)
+{
+System.out.println("----Client has Closed-----");
+}
+}
+}
+Client:
+import java.net.*;
+import java.io.*;
+public class client2
+{
+public static void main (String[] arg) throws Exception
+{
+try
+{
+Socket s=new Socket(InetAddress.getLocalHost(),1000);
+BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()));
+String input;
+PrintWriter out=new PrintWriter(s.getOutputStream(),true);
+while((input=br.readLine())!=null)
+{
+
+System.out.println(input);
+out.println("Date and Time Received-----------client Acknowledge------");
+}
+}
+catch(Exception e)
+{
+}
+}
+}
+_________________
+Expt 3. Creation of UDP server
+Algorithm:
+SERVER:
+1.Create a new Datagram Socket.
+2.Create a new Datagram packet.
+3.Create a message to be sent.
+4.Convert into bytes
+5.create a packet
+6.send packet
+7.wait for acknowledgement from client
+8.print data from client
+9.stop the program
+CLIENT:
+1. Create new Datagram Socket.
+2.Create new Datagram packet.
+3.Get the packet.
+4.Print the content.
+5.Create a new packet.
+
+Program:
+Server:
+import java.net.*;
+import java.io.*;
+public class udpserver
+{
+public static int client=789;
+public static int server=790;
+public static void main(String arg[]) throws IOException
+{
+String s;
+InetAddress id=InetAddress.getLocalHost();
+BufferedReader dis=new BufferedReader(new InputStreamReader(System.in));
+DatagramSocket ds=new DatagramSocket(server);
+byte b[]=new byte[1024];
+System.out.println("Server Side                                            Sending   ");
+System.out.println("\n"+id);
+while(true) { s=dis.readLine();
+if(s.equals("end")) { b=s.getBytes();
+DatagramPacket dp=new DatagramPacket(b,s.length(),id,client);
+ds.send(dp);
+break;
+}
+else
+{
+b=s.getBytes();
+DatagramPacket dp=new DatagramPacket(b,s.length(),id,client);
+ds.send(dp);
+}
+}
+
+}
+}
+Client:
+import java.net.*;
+import java.io.*;
+public class udpclient
+{
+public static int client=789;
+public static void main(String args[]) throws IOException
+{
+DatagramSocket ds=new DatagramSocket(client);
+byte b[]=new byte[1024];
+System.out.println("client                                  receiving   ");
+while(true)
+{
+DatagramPacket dp=new DatagramPacket(b,b.length);
+ds.receive(dp);
+String s=new String(dp.getData(),0,dp.getLength());
+if(s.equals("end")) break;
+else
+System.out.println(s);
+}
+}
+}
+_________________
+Expt 4. Program to create simple chat application
+Algorithm:
+SERVER
+STEP1: Instances of vector class is used to keep track of number of clients that can be connected and
+currently logged.
+STEP2: The method that is responsible for sending the message to the clients is made synchronized.
+STEP3: Server is capable of keeping into account the number of users. It adds and removes the client
+from the vector list as and when the connections are established and terminated.
+CLIENT
+STEP1: The client receives the name of the user and message of that user and sends it to client.
+Server then passes it on to all clients connected.
+Program:
+Server:
+import java.net.*;
+import java.io.*;
+import java.util.*;
+public class cchatserver extends Thread
+{
+public static void main(String arg[])throws Exception
+{
+ServerSocket ssocket=new ServerSocket(4000);
+Socket csocket=ssocket.accept();
+BufferedReader br=new BufferedReader(new InputStreamReader(csocket.getInputStream()));
+BufferedReader in=new BufferedReader(new InputStreamReader(System.in));
+PrintWriter out=new PrintWriter(csocket.getOutputStream(),true);
+String s,t;
+try
+
+{
+while(true)
+{
+System.out.println("server");
+s=in.readLine();
+out.println("server:"+s);
+System.out.println(br.readLine());
+}
+}
+catch(IOException e)
+{
+System.out.println("client has closed");
+}
+}
+}
+Client:
+import java.net.*;
+import java.io.*;
+public class cchatclient
+{
+public static void main(String arg[])throws Exception
+{
+Socket s=new Socket(InetAddress.getLocalHost(),4000);
+BufferedReader br=new BufferedReader(new InputStreamReader(s.getInputStream()));
+BufferedReader in=new BufferedReader(new InputStreamReader(System.in));
+PrintWriter out=new PrintWriter(s.getOutputStream(),true);
+String input,t;
+while(true)
+{
+System.out.println("client");
+
+out.println("client:"+in.readLine());
+System.out.println(br.readLine());
+}
+}
+}
+__________________________________
+Expt 5. Calculation of checksum for packet date and file
+Algorithm:
+Server Side
+1. Create objects of ServerSocket and Socket class
+2. Create input and output buffers
+3. Listen for client to connect
+4. Get the data from client
+5. Calculate the CRC
+6. Get the CRC from client
+7. If calculated CRC is same as that of received CRC, then send success message to client
+8. Else send failure message
+9. Close sockets
+10.Stop
+Client Side
+1. Create object of Socket class and connect to the server
+2. Send the data along with the CRC
+3. Get the response from server and print
+4. Close socket
+5. Stop
+
+Program:
+Server:
+import java.net.*;
+import java.io.*;
+import java.util.*;
+import java.util.zip.*;
+import java.lang.*;
+public class Server extends Thread
+{
+public static void main(String[] args) throws Exception
+{
+try
+{
+ServerSocket sSocket=new ServerSocket(1000);
+Socket cSocket=sSocket.accept();
+BufferedReader br=new BufferedReader(new InputStreamReader(cSocket.getInputStream()));
+PrintWriter out=new PrintWriter(cSocket.getOutputStream(),true);
+String str1,str2;
+str2=br.readLine();
+System.out.println("INCOMING DATA : " + str2);
+StringTokenizer s=new StringTokenizer(str2,"$");
+CRC32 c=new CRC32();
+str1=s.nextToken();
+for(int i=0;i<s.countTokens()+2;i++)
+{
+System.out.println(str1);
+System.out.println("str2");
+System.out.println(str2);
+System.out.println("str2");
+}
+
+System.out.println(str1);
+c.update(str1.getBytes());
+System.out.println("str3");
+long rCRC=Long.parseLong(br.readLine()),cCRC=c.getValue();
+System.out.println("rCRC = " + rCRC);
+System.out.println("cCRC = " + cCRC);
+System.out.println("dsfghdfd");
+if(rCRC==cCRC)
+{
+System.out.println("CRC Check successful...");
+System.out.println("CRC Check successful...");
+}
+else
+{
+out.println("CRC Check un-successful...");
+System.out.println("CRC Check un-successful...");
+}
+}
+catch(Exception e){}
+}
+}
+Client:
+import java.net.*;
+import java.io.*;
+import java.lang.*;
+import java.util.zip.*;
+public class Client
+{
+public static void main(String[] args) throws Exception
+{
+
+try
+{
+Socket s=new Socket(InetAddress.getLocalHost(),1000);
+BufferedReader br=new BufferedReader(new InputStreamReader(s.getInputStream()));
+PrintWriter out=new PrintWriter(s.getOutputStream(),true);
+String data="";
+CRC32 c=new CRC32();
+for(int i=0;i<args.length;i++)
+{
+System.out.println(args[i]);
+c.update(args[i].getBytes());
+data=data+args[i]+"$";
+}
+System.out.println(data);
+System.out.println("CRC = " + c.getValue());
+out.println(data);
+out.println(c.getValue());
+System.out.println(br.readLine());
+}
+catch(Exception e){}
+}
+}
+__________________________________
+Expt 6. Program to implement HTTP protocol
+Algorithm:
+STEP 1: Create the URL with Http URL Connections
+STEP 2: Define the Http Protocol for Client Connections.
+STEP3: Get the Http Connection.
+STEP4: Print the URL for the Client
+
+Program:
+import java.io.*;
+import java.net.*;
+public class myhttp
+{
+public static void main(String args[])throws IOException
+{
+URL url=new URL("http://www.google.com/");
+URLConnection conn=url.openConnection();
+conn.connect();
+InputStreamReader content= new InputStreamReader(conn.getInputStream());
+FileWriter f=new FileWriter ("abc.html");
+for(int i=0;i!=-1;i= content.read())
+{
+f.write((char) i);
+}
+}
+}
+__________________________________
+Expt 7. Creation of Telnet Protocol
+Algorithm:
+SERVER:
+STEP1. Declare the header file and create class name.
+STEP2. Create an object in the server which check where its connection is established or not.
+STEP3. Now send the message as input to client.
+STEP4. Print the message
+CLIENT:
+STEP1. Declare the header file.
+
+STEP2. Create a class name for class.
+STEP3. By using buffer condition are read and print the input.
+STEP4. Display the connection message which is given in server.
+Program:
+Server:
+import java.lang.*;
+import java.io.*;
+import java.net.*;
+class TelnetServer
+{
+public static void main(String args[])
+{
+String data = "Hello Client!! ";
+try
+{
+ServerSocket srvr = new ServerSocket(8088);
+Socket skt = srvr.accept();
+System.out.println("Client Connected!");
+PrintWriter out = new PrintWriter(skt.getOutputStream(), true);
+DataInputStream din=new DataInputStream(skt.getInputStream());
+if(din.readUTF().equals("1")){ System.out.println("String: '" + data);
+out.print(data);
+}
+out.close();
+skt.close();
+srvr.close();
+din.close(); /
+}
+catch(Exception e)
+
+{
+System.out.print(e);
+}
+}
+}
+Client:
+import java.net.*;
+import java.io.*;
+class TelnetClient
+{
+public static void main(String args[]) throws Exception
+{
+Socket soc=new Socket("localhost",8088);
+String Command;
+DataInputStream din=new DataInputStream(soc.getInputStream());
+DataOutputStream dout=new DataOutputStream(soc.getOutputStream());
+BufferedReader br=new BufferedReader(new InputStreamReader(System.in));
+System.out.println("Welcome to Telnet Client");
+System.out.println("< Telnet Prompt >");
+Command=br.readLine();
+dout.writeUTF(Command);
+System.out.println(din.readLine());
+soc.close();
+din.close();
+dout.close();
+br.close();
+}
+}
+___________________________________________________
+Expt 8. Implement FTP using TCP
+Algorithm:
+CLIENT
+STEP 1: Create instance for the Socket class and establish connectivity with the server
+STEP 2: Use the port number 4000
+STEP 3: Receive the file from the server
+STEP 4: Reset the connection with the server
+SERVER
+STEP 1: Create instances for the serversocket class and accept the server port
+STEP 2: Read the filename to be opened
+STEP 3: Send the file to the client
+Program:
+Server:
+import java.net.*;
+import java.io.*;
+public class ftpserver extends Thread
+{
+public static void main(String args[])
+{
+try
+{
+ServerSocket ss=new ServerSocket(4000);
+Socket s=ss.accept();
+BufferedReader br=new BufferedReader(new InputStreamReader(s.getInputStream()));
+BufferedReader in=new BufferedReader(new InputStreamReader(System.in));
+PrintWriter out=new PrintWriter(s.getOutputStream(),true);
+String fn,contents=" ",temp;
+System.out.println("enter the file name to open: ");
+
+fn=in.readLine();
+File f=new File(fn);
+if(f.isFile()&&f.canRead())
+{
+BufferedReader fil=new BufferedReader(new FileReader(fn));
+while((temp=fil.readLine())!=null) contents=contents+temp+"\n";
+}
+else contents="error in input file";
+System.out.println(" the contents of the file is:\n"+contents);
+System.out.println("sending the file to the client                                 ");
+out.println(contents);
+}
+catch(Exception e)
+{
+System.out.println(e);
+}
+}
+}
+Client:
+import java.net.*;
+import java.io.*;
+public class ftpclient
+{
+public static void main(String args[])
+{
+try
+{
+Socket s=new Socket(InetAddress.getLocalHost(),4000);
+BufferedReader br=new BufferedReader(new InputStreamReader(s.getInputStream()));
+String str;
+
+while((str=br.readLine())!=null) System.out.println(str);
+}
+catch(Exception e)
+{
+System.out.println("The connection to the server has been reset");
+}
+}
+}
+___________________________________________________
+Expt 9. Implement FTP using UDP
+Algorithm:
+CLIENT
+STEP 1: Create instance for the Socket class and establish connectivity with the server
+STEP 2: Use the port number 8000.
+STEP 3: Receive the file from the server
+STEP 4: Reset the connection with the server
+SERVER
+STEP 1: Create instances for the serversocket class and accept the server port
+STEP 2: Read the filename to be opened
+STEP 3: Send the file to the client
+Program:
+Server:
+import java.net.*;
+import java.io.*;
+public class Server
+{
+public static void main(String[] args) throws Exception
+{
+
+InetAddress sa=InetAddress.getByName(null);
+BufferedReader in=new BufferedReader(new InputStreamReader(System.in));
+String msg="",fn,tmp;
+System.out.println("Enter the File name:");
+fn=in.readLine();
+File f=new File(fn);
+if(f.isFile() && f.canRead())
+{
+BufferedReader fil=new BufferedReader(new FileReader(fn));
+while((tmp=fil.readLine())!=null)
+msg=msg+tmp+"\n";
+}
+else msg="ERROR IN IMPUT FILE";
+System.out.println(msg);
+byte data[]=new byte[msg.length()];
+msg.getBytes(0,msg.length(),data,0);
+DatagramSocket ds = new DatagramSocket(8000);
+DatagramPacket dp=new DatagramPacket(data,data.length,sa,8001);
+ds.send(dp);
+}
+}
+Client:
+import java.net.*;
+import java.io.*;
+public class udpclient
+{
+public static void main(String[] args) throws Exception
+{
+InetAddress sa=InetAddress.getLocalHost();
+byte data[]=new byte[1024];
+DatagramSocket ds = new DatagramSocket(8001);
+
+DatagramPacket dp=new DatagramPacket(data,data.length);
+ds.receive(dp);
+String msg=new String(dp.getData(),0,0,dp.getLength());
+System.out.println("Received data : " + msg);
+}
+}
+___________________________________________________
+Expt 10. Daemon Threads
+Algorithm:
+Step 1: Create a class DaemonThread that extends Thread class
+Step 2: Create a constructor to set the name of thread
+Step 3: Create a run method and check if the current thread is Daemon or not
+Step 4: In main function create 3 threads (2 Daemon and 1 user thread) and run the program
+Step 5: To make a thread or daemon thread, call the method setDaemon(true)
+Step 6: Calling the setDaemon() method after starting the thread will throw
+IllegalThreadStateException
+Step 7: Run the program
+Step 8: Stop
+Program:
+public class DaemonThread extends Thread
+{
+public DaemonThread(String name){
+super(name);
+}
+public void run()
+{
+// Checking whether the thread is Daemon or not
+if(Thread.currentThread().isDaemon())
+
+{
+System.out.println(getName() + " is Daemon thread");
+}
+else
+{
+System.out.println(getName() + " is User thread");
+}
+}
+public static void main(String[] args)
+{
+DaemonThread t1 = new DaemonThread("t1");
+DaemonThread t2 = new DaemonThread("t2");
+DaemonThread t3 = new DaemonThread("t3");
+// Setting user thread t1 to Daemon
+t1.setDaemon(true);
+// starting first 2 threads
+t1.start();
+t2.start();
+// Setting user thread t3 to Daemon
+t3.setDaemon(true);
+t3.start();
+}
+}
+Exception in Daemon Thread:
+Program:
+public class DaemonThread extends Thread
+{
+public void run()
+
+{
+System.out.println("Thread name: " + Thread.currentThread().getName());
+System.out.println("Check if its DaemonThread: "+ Thread.currentThread().isDaemon());
+}
+public static void main(String[] args)
+{
+DaemonThread t1 = new DaemonThread();
+DaemonThread t2 = new DaemonThread();
+t1.start();
+// Exception as the thread is already started
+t1.setDaemon(true);
+t2.start();
+}
+}
+____________________________________________________________________
+Expt 11. Ping Commands
+Algorithm:
+Step 1. Start
+Step 2͘ Let string Ip=”localhost”, and pass “ping localhost” as the parameter to the
+runSystemCommand() function.
+Step 3. In runSystemCommand() function, perform ping request to localhost using getRuntime.exec()
+Step 4. Print the number of data packets sent, received, lost and the approximate round trip time of
+the data transmission
+Step 5. If exception is thrown, print the stack trace
+Step 6. Use java.util.Date class to obtain current date and time, and display it
+Step 7. Stop
+
+Program:
+import java.io.*;
+public class ping1
+{
+public static void runSystemCommand(String Command)
+{
+try{
+Process p=Runtime.getRuntime().exec(Command);
+BufferedReader InputStream=new BufferedReader(new InputStreamReader(p.getInputStream()));
+String s="vvv";
+while((s=InputStream.readLine())!=null)
+{
+System.out.println(s);
+}
+}
+catch(Exception e)
+{
+e.printStackTrace();
+}
+}
+public static void main(String[]args)
+{
+String Ip="localhost";
+runSystemCommand("ping " +Ip);
+java.util.Date date=new java.util.Date();
+System.out.println(date);
+}
+}_________________
+__________________________________
+Expt 12. Traceroute Command
+Algorithm:
+Step 1: Start
+Step 2. Include the necessary packages in java
+Step 3. Let string ip be the name of the website for which you want to trace the route to (eg.
+“www͘drranurekha͘com”);
+Step 4. Pass “tracert”+ip as the parameter to runSystemCommand() function͘
+Step 5. In RunSystemCommand() function, create process object p to implement traceroute
+command, use getRuntime.exec() to trace the route to www.drranurekha.com
+Step 6. Print the complete route to the destination address along with the number of hops and the
+time/delays between intermediate routers.
+Step 7. Trace complete
+Step 8. Stop
+Program:
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+public class traceroutecmd
+{
+public static void runSystemCommand(String command)
+{
+try
+{
+Process p = Runtime.getRuntime().exec(command);
+BufferedReader inputStream = new BufferedReader(
+new InputStreamReader(p.getInputStream()));
+String s = "";
+while ((s = inputStream.readLine()) != null)
+System.out.println(s);
+}
+catch (Exception e)
+
+{
+}
+}
+public static void main(String[] args)
+{
+// String ip = "www.google.co.in";
+// String ip = "127.0.0.1";
+String ip = "www.drranurekha.com";
+runSystemCommand("tracert " + ip);
+}
+}
